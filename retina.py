@@ -9,8 +9,9 @@ from tqdm import tqdm
 
 @click.command()
 @click.option('-b', '--backup', is_flag=True)
+@click.option('--format', type=click.Choice(['jpeg', 'webp']), default='jpeg')
 @click.argument('root', type=click.Path(exists=True), required=False)
-def resize_to_retina(root, backup=False):
+def resize_to_retina(root, format, backup=False):
     EXT = ('jpg', 'jpeg')
     IGNORE = ('contactsheet', 'cover', 'poster')
     if not root:
@@ -41,7 +42,12 @@ def resize_to_retina(root, backup=False):
                 copyfile(photo, backup / photo.name)
             # resize to 2880*4320 "retina"
             img.thumbnail((4320, 4320), Image.BICUBIC)
-            img.save(photo, 'jpeg', quality=75, optimize=True)
+            if format == 'jpeg':
+                img.save(photo, 'jpeg', quality=75, optimize=True)
+            elif format == 'webp':
+                img.save(photo.with_suffix('.webp'), 'webp',
+                         quality=80, method=4)
+                photo.unlink()
         try:
             task.rename(task.parent / (task.name[2:] + ' Mx'))
         except OSError:
