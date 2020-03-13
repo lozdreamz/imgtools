@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import click
 from pathlib import Path
 from PIL import Image
@@ -14,7 +16,7 @@ def resize_to_retina(root, backup=False):
     if not root:
         root = Path.cwd()
     # list subdirectories of root with 00names
-    tasks = [x for x in root.iterdir() if (x.is_dir() and str(x)[:2] == '00')]
+    tasks = [x for x in root.iterdir() if (x.is_dir() and x.name[:2] == '00')]
     for index, task in enumerate(tasks):
         photoset = [x for x in task.iterdir() if str(x).lower().endswith(EXT)]
         print(f'{index+1}/{len(tasks)}: {task.name}')
