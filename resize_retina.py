@@ -15,6 +15,9 @@ def resize_to_retina(root, backup=False):
     IGNORE = ('contactsheet', 'cover', 'poster')
     if not root:
         root = Path.cwd()
+    else:
+        root = Path(root)
+    print(root)
     # list subdirectories of root with 00names
     tasks = [x for x in root.iterdir() if (x.is_dir() and x.name[:2] == '00')]
     for index, task in enumerate(tasks):
@@ -41,7 +44,8 @@ def resize_to_retina(root, backup=False):
             img.thumbnail((4320, 4320), Image.BICUBIC)
             img.save(photo, 'jpeg', quality=75, optimize=True)
         try:
-            task.rename(str(task)[2:] + ' Mx')
+            print(task)
+            task.rename(task.parent / (task.name[2:] + ' Mx'))
         except OSError:
             print("Unable to rename dir")
     print("Done.")
