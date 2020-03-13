@@ -16,7 +16,7 @@ for index, task in enumerate(tasks):
     # create backup dir
     backup = task / ('original')
     backup.mkdir(exist_ok=True)
-    print(f'{index}/{len(tasks)}: {task.name}')
+    print(f'{index+1}/{len(tasks)}: {task.name}')
     # image processing with pretty progress bar
     for photo in tqdm(photoset):
         # don't process covers, cover-clean and contactsheets
