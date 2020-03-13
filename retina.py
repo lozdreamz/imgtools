@@ -7,11 +7,12 @@ from shutil import copyfile
 from tqdm import tqdm
 
 
-@click.command()
+@click.command() # noqa: C901
 @click.option('-b', '--backup', is_flag=True)
+@click.option('--no-resize', is_flag=True)
 @click.option('--format', type=click.Choice(['jpeg', 'webp']), default='jpeg')
 @click.argument('root', type=click.Path(exists=True), required=False)
-def resize_to_retina(root, format, backup=False):
+def resize_to_retina(root, format, backup=False, no_resize=False):
     EXT = ('jpg', 'jpeg')
     IGNORE = ('contactsheet', 'cover', 'poster')
     if not root:
@@ -41,7 +42,8 @@ def resize_to_retina(root, format, backup=False):
             if backup:
                 copyfile(photo, backup / photo.name)
             # resize to 2880*4320 "retina"
-            img.thumbnail((4320, 4320), Image.BICUBIC)
+            if not no_resize:
+                img.thumbnail((4320, 4320), Image.BICUBIC)
             if format == 'jpeg':
                 img.save(photo, 'jpeg', quality=75, optimize=True)
             elif format == 'webp':
