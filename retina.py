@@ -8,11 +8,13 @@ from tqdm import tqdm
 
 
 @click.command() # noqa: C901
-@click.option('-b', '--backup', is_flag=True)
+@click.option('--backup/--no-backup', ' /-B', default=True)
 @click.option('--no-resize', is_flag=True)
 @click.option('--format', type=click.Choice(['jpeg', 'webp']), default='jpeg')
 @click.argument('root', type=click.Path(exists=True), required=False)
-def resize_to_retina(root, format, backup=False, no_resize=False):
+def resize_to_retina(root, format, backup, no_resize=False):
+    print(backup)
+    exit()
     EXT = ('jpg', 'jpeg')
     IGNORE = ('contactsheet', 'cover', 'poster')
     if not root:
@@ -26,8 +28,8 @@ def resize_to_retina(root, format, backup=False, no_resize=False):
         print(f'{index+1}/{len(tasks)}: {task.name}')
         # create backup dir
         if backup:
-            backup = task / ('original')
-            backup.mkdir(exist_ok=True)
+            backup_path = task / ('originals')
+            backup_path.mkdir(exist_ok=True)
         # image processing with pretty progress bar
         for photo in tqdm(photoset):
             # don't process covers, cover-clean and contactsheets
@@ -40,7 +42,7 @@ def resize_to_retina(root, format, backup=False, no_resize=False):
                 continue
             # save backup
             if backup:
-                copyfile(photo, backup / photo.name)
+                copyfile(photo, backup_path / photo.name)
             # resize to 2880*4320 "retina"
             if not no_resize:
                 img.thumbnail((4320, 4320), Image.BICUBIC)
