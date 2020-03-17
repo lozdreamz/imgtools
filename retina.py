@@ -9,11 +9,11 @@ from tqdm import tqdm
 
 @click.command() # noqa: C901
 @click.option('--backup/--no-backup', ' /-B', default=True)
-@click.option('--no-resize', is_flag=True)
+@click.option('--resize/--no-resize', ' /-R', default=True)
 @click.option('--format', type=click.Choice(['jpeg', 'webp']), default='jpeg')
 @click.argument('root', type=click.Path(exists=True), required=False)
-def resize_to_retina(root, format, backup, no_resize=False):
-    print(backup)
+def resize_to_retina(root, format, backup, resize):
+    print(resize)
     exit()
     EXT = ('jpg', 'jpeg')
     IGNORE = ('contactsheet', 'cover', 'poster')
@@ -44,7 +44,7 @@ def resize_to_retina(root, format, backup, no_resize=False):
             if backup:
                 copyfile(photo, backup_path / photo.name)
             # resize to 2880*4320 "retina"
-            if not no_resize:
+            if resize:
                 img.thumbnail((4320, 4320), Image.BICUBIC)
             if format == 'jpeg':
                 img.save(photo, 'jpeg', quality=75, optimize=True)
