@@ -8,12 +8,12 @@ from tqdm import tqdm
 
 
 @click.command() # noqa: C901
+@click.argument('root', type=click.Path(exists=True), required=False)
 @click.option('--backup/--no-backup', ' /-B', default=True)
 @click.option('--resize/--no-resize', ' /-R', default=True)
-@click.option('--format', type=click.Choice(['jpeg', 'webp']), default='jpeg')
-@click.argument('root', type=click.Path(exists=True), required=False)
-def resize_to_retina(root, format, backup, resize):
-    print(resize)
+@click.option('-w', '--webp', is_flag=True, default=False)
+def resize_to_retina(root, backup, resize, webp):
+    print(webp)
     exit()
     EXT = ('jpg', 'jpeg')
     IGNORE = ('contactsheet', 'cover', 'poster')
@@ -46,9 +46,9 @@ def resize_to_retina(root, format, backup, resize):
             # resize to 2880*4320 "retina"
             if resize:
                 img.thumbnail((4320, 4320), Image.BICUBIC)
-            if format == 'jpeg':
+            if not webp:
                 img.save(photo, 'jpeg', quality=75, optimize=True)
-            elif format == 'webp':
+            else:
                 img.save(photo.with_suffix('.webp'), 'webp',
                          quality=80, method=4)
                 photo.unlink()
