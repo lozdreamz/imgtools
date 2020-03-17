@@ -35,6 +35,31 @@ def process_images(files, backup_path=None, resize=True, webp=False):
                 img.save(f, 'jpeg', quality=75, optimize=True)
 
 
+def process_dir(path, backup, resize, webp):
+    EXT = ('jpg', 'jpeg')
+    # create backup dir
+    if backup:
+        backup_path = path / ('originals')
+        backup_path.mkdir(exist_ok=True)
+        # filter file list
+        photoset = [x for x in path.iterdir() if str(x).lower().endswith(EXT)]
+        photoset = list(filter(match_name, photoset))
+        process_images(photoset, backup_path, resize, webp)
+        try:
+            path.rename(path.parent / (path.name[2:] + ' Mx'))
+        except OSError:
+            print("Unable to rename dir")
+
+
+def process_dirs(root, backup, resize, webp):
+    # list subdirectories of root with 00names
+    tasks = [x for x in root.iterdir() if (x.is_dir() and x.name[:2] == '00')]
+    for index, task in enumerate(tasks):
+        print(f'{index+1}/{len(tasks)}: {task.name}')
+        process_dir(task, backup, resize, webp)
+    print("Done.")
+
+
 def match_name(filename):
     ''' Match filename not contains ignored word '''
     IGNORE = ('contactsheet', 'cover', 'poster')
@@ -47,28 +72,11 @@ def match_name(filename):
 @click.option('--resize/--no-resize', ' /-R', default=True)
 @click.option('-w', '--webp', is_flag=True, default=False)
 def resize_to_retina(root, backup, resize, webp):
-    EXT = ('jpg', 'jpeg')
     if not root:
         root = Path.cwd()
     else:
         root = Path(root)
-    # list subdirectories of root with 00names
-    tasks = [x for x in root.iterdir() if (x.is_dir() and x.name[:2] == '00')]
-    for index, task in enumerate(tasks):
-        print(f'{index+1}/{len(tasks)}: {task.name}')
-        # create backup dir
-        if backup:
-            backup_path = task / ('originals')
-            backup_path.mkdir(exist_ok=True)
-        # filter file list
-        photoset = [x for x in task.iterdir() if str(x).lower().endswith(EXT)]
-        photoset = list(filter(match_name, photoset))
-        process_images(photoset, backup_path, resize, webp)
-        try:
-            task.rename(task.parent / (task.name[2:] + ' Mx'))
-        except OSError:
-            print("Unable to rename dir")
-    print("Done.")
+    process_dirs(root, backup, resize, webp)
 
 
 if __name__ == '__main__':
