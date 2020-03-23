@@ -6,6 +6,8 @@ from PIL import Image
 from shutil import copyfile
 from tqdm import tqdm
 
+Image.MAX_IMAGE_PIXELS = 104_000_000
+
 
 def process_images(files, backup_path, resize, webp):
     '''
