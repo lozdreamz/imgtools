@@ -9,7 +9,7 @@ Batch resize photos to 'retina' (2880p) size
 ### Requirements:
 
 - click
-- Pillow (Pillow-SIMD recommended)
+- Pillow (Pillow-SIMD recommended)\
   For convertion to WebP Pillow must be complied with WebP support (first install libwebp-dev)
 - tqdm
 
@@ -17,7 +17,7 @@ Batch resize photos to 'retina' (2880p) size
 
 retina.py [OPTIONS] [PATH]
 
-#### Option
+#### Options
 
 ##### --dirs, -d / --files, -f
 Choose mode: directories with names starting with 00 or files in directory (default: dirs mode)
