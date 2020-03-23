@@ -19,7 +19,7 @@ def process_images(files, backup_path, resize, webp):
     :param webp: convert to WebP
     '''
     # image processing with pretty progress bar
-    for f in tqdm(files):
+    for f in tqdm(files, ascii=' #'):
         img = Image.open(f)
         # don't process vertical stretched images (maybe cs) h/w > 2.25
         if (lambda x: x[1]/x[0] < 2.25)(img.size):
