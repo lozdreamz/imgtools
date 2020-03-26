@@ -22,7 +22,8 @@ def process_images(files, backup_path, resize, webp):
     for f in tqdm(files, ascii=' #'):
         img = Image.open(f)
         # don't process vertical stretched images (maybe cs) h/w > 2.25
-        if (lambda x: x[1]/x[0] < 2.25)(img.size):
+        # and small images (heigth < 800)
+        if (lambda x: x[1] > 800 and x[1]/x[0] < 2.25)(img.size):
             # save backup
             if backup_path:
                 copyfile(f, backup_path / f.name)
