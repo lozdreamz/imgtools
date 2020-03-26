@@ -3,12 +3,13 @@
 import click
 from math import ceil
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
 Image.MAX_IMAGE_PIXELS = 104_000_000
 TILE_SIZE = 256
 BORDER_WIDTH = 2
+FONTS_DIR = '/usr/share/fonts/truetype'
 
 
 def get_tile_pos(index):
@@ -39,21 +40,24 @@ def add_margins(img):
         result.paste(img, ((h-w) // 2, 0))
     # add border
     ImageDraw.Draw(result).line(
-        ((0, 0), (TILE_SIZE, 0), (TILE_SIZE, TILE_SIZE), (0, TILE_SIZE)),
-        fill='white', width=BORDER_WIDTH
+        ((0, 0), (TILE_SIZE, 0), (TILE_SIZE, TILE_SIZE),
+         (0, TILE_SIZE), (0, 0)),
+        fill='gray', width=BORDER_WIDTH
     )
     return result
 
 
-def add_text(img, text):
+def add_text(img, text, font_size=11):
     result = img.copy()
     draw = ImageDraw.Draw(result)
+    font = ImageFont.truetype(f'{FONTS_DIR}/dejavu/DejaVuSans.ttf', font_size)
+    text_heigth = font.getsize(text)[1]
     # draw black rectangle at bottom
-    draw.rectangle((BORDER_WIDTH+1, TILE_SIZE-12,
-                    TILE_SIZE-BORDER_WIDTH-1, TILE_SIZE-BORDER_WIDTH-1),
+    draw.rectangle((BORDER_WIDTH+1, TILE_SIZE-text_heigth-2,
+                    TILE_SIZE-BORDER_WIDTH, TILE_SIZE-BORDER_WIDTH),
                    fill='black')
     # and write text
-    draw.text((4, BORDER_WIDTH-12), text, 'white')
+    draw.text((4, TILE_SIZE-text_heigth-1), text, 'white', font)
     return result
 
 
@@ -72,7 +76,8 @@ def process_images(files, text):
               bar_format='{percentage:3.0f}%|{bar}|{n_fmt}/{total_fmt}',
               ascii=' ░█') as pbar:
         for i, f in enumerate(files):
-            img = Image.open(f).thumbnail((TILE_SIZE, TILE_SIZE))
+            img = Image.open(f)
+            img.thumbnail((TILE_SIZE, TILE_SIZE))
             img = add_text(add_margins(img), f.stem)
             result.paste(img, get_tile_pos(i))
             pbar.update(1)
