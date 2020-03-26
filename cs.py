@@ -81,7 +81,8 @@ def process_images(files, text):
             img = add_text(add_margins(img), f.stem)
             result.paste(img, get_tile_pos(i))
             pbar.update(1)
-    result.save('contactsheet.jpg', 'jpeg', quality=75, optimize=True)
+    result.save(files[1].parent / ('contactsheet.jpg'), 'jpeg',
+                quality=75, optimize=True)
 
 
 def match_name(filename):
@@ -101,18 +102,41 @@ def process_dir(path, text):
     # collect, filter and process
     files = [x for x in path.iterdir() if str(x).lower().endswith(EXT)]
     files = sorted(list(filter(match_name, files)))
-    process_images(files, text)
+    if files:
+        process_images(files, text)
+
+
+def process_dirs(root, text):
+    '''
+    Process all directories in root directory
+
+    :param root: selected root
+    :param text: add file name as caption on thumbnails
+    '''
+    # list subdirectories of root
+    tasks = [x for x in root.iterdir() if x.is_dir()]
+    for index, task in enumerate(tasks):
+        print(f'{index+1}/{len(tasks)}: {task.name}')
+        process_dir(task, text)
+    print("Done.")
 
 
 @click.command()
 @click.argument('path', type=click.Path(exists=True), required=False)
+@click.option('-f', '--files', 'mode', flag_value='files', default=True)
+@click.option('-d', '--dirs', 'mode', flag_value='dirs')
 @click.option('-t', '--text', is_flag=True, default=False)
-def create_contactsheet(path, text):
+def create_contactsheet(path, mode, text):
     if not path:
         path = Path.cwd()
     else:
         path = Path(path)
-    process_dir(path, text)
+    if mode == 'dirs':
+        print('Processing  dirs...')
+        process_dirs(path, text)
+    elif mode == 'files':
+        print('Processing files in a directory...')
+        process_dir(path, text)
 
 
 if __name__ == '__main__':
