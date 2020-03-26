@@ -7,9 +7,11 @@ from PIL import Image, ImageDraw
 from tqdm import tqdm
 
 Image.MAX_IMAGE_PIXELS = 104_000_000
+TILE_SIZE = 256
+BORDER_WIDTH = 2
 
 
-def get_tile_pos(index, width, height):
+def get_tile_pos(index):
     '''
     Convert tile index to position (box) in contactsheet
 
@@ -18,7 +20,7 @@ def get_tile_pos(index, width, height):
     '''
     row = (index - 1) // 4
     col = (index - 1) % 4
-    return 256*col, 256*row
+    return TILE_SIZE*col, TILE_SIZE*row
 
 
 def add_margins(img):
@@ -27,7 +29,7 @@ def add_margins(img):
 
     :param img: original Pillow image
     '''
-    result = Image.new(img.mode, (256, 256), 0)
+    result = Image.new(img.mode, (TILE_SIZE, TILE_SIZE), 0)
     w, h = img.size
     if w == h:
         return img
@@ -36,20 +38,22 @@ def add_margins(img):
     else:
         result.paste(img, ((h-w) // 2, 0))
     # add border
-    draw = ImageDraw.Draw(result)
-    draw.line(((0, 0), (256, 0), (256, 256), (0, 256)),
-              fill=(255, 255, 255), width=2)
-    draw.rectangle((0, 0, 256, 256), outline=(255, 255, 255))
+    ImageDraw.Draw(result).line(
+        ((0, 0), (TILE_SIZE, 0), (TILE_SIZE, TILE_SIZE), (0, TILE_SIZE)),
+        fill='white', width=BORDER_WIDTH
+    )
     return result
 
 
 def add_text(img, text):
     result = img.copy()
     draw = ImageDraw.Draw(result)
-    # draw black rectangle
-    draw.rectangle((3, 256-12, 253, 253), fill='black')
+    # draw black rectangle at bottom
+    draw.rectangle((BORDER_WIDTH+1, TILE_SIZE-12,
+                    TILE_SIZE-BORDER_WIDTH-1, TILE_SIZE-BORDER_WIDTH-1),
+                   fill='black')
     # and write text
-    draw.text((4, 256-12), text, (255, 255, 255))
+    draw.text((4, BORDER_WIDTH-12), text, 'white')
     return result
 
 
@@ -61,13 +65,17 @@ def process_images(files, text):
     :param text: add file name as caption on thumbnails
     '''
     # size is tuple (width, height)
-    result = Image.new("RGB", (1024, ceil(len(files)/4*256)), 'black')
+    result = Image.new('RGB', (TILE_SIZE*4, ceil(len(files)/4*TILE_SIZE)),
+                       'black')
     # image processing with pretty progress bar
-    for i, f in tqdm(enumerate(files), ascii=' #'):
-        img = Image.open(f)
-        img.thumbnail((256, 256), Image.NEAREST)
-        img = add_text(add_margins(img), f.stem)
-        result.paste(img, get_tile_pos(i, *img.size))
+    with tqdm(total=len(files),
+              bar_format='{percentage:3.0f}%|{bar}|{n_fmt}/{total_fmt}',
+              ascii=' ░█') as pbar:
+        for i, f in enumerate(files):
+            img = Image.open(f).thumbnail((TILE_SIZE, TILE_SIZE))
+            img = add_text(add_margins(img), f.stem)
+            result.paste(img, get_tile_pos(i))
+            pbar.update(1)
     result.save('contactsheet.jpg', 'jpeg', quality=75, optimize=True)
 
 
