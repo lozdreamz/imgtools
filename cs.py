@@ -19,8 +19,8 @@ def get_tile_pos(index):
     :param index: index of tile
     :param width, height: tile size
     '''
-    row = (index - 1) // 4
-    col = (index - 1) % 4
+    row = index // 4
+    col = index % 4
     return TILE_SIZE*col, TILE_SIZE*row
 
 
@@ -52,6 +52,7 @@ def add_text(img, text, font_size=11):
     draw = ImageDraw.Draw(result)
     font = ImageFont.truetype(f'{FONTS_DIR}/dejavu/DejaVuSans.ttf', font_size)
     text_heigth = font.getsize(text)[1]
+    # TODO get text length and wrap if necessary
     # draw black rectangle at bottom
     draw.rectangle((BORDER_WIDTH+1, TILE_SIZE-text_heigth-2,
                     TILE_SIZE-BORDER_WIDTH, TILE_SIZE-BORDER_WIDTH),
@@ -69,7 +70,7 @@ def process_images(files, text):
     :param text: add file name as caption on thumbnails
     '''
     # size is tuple (width, height)
-    result = Image.new('RGB', (TILE_SIZE*4, ceil(len(files)/4*TILE_SIZE)),
+    result = Image.new('RGB', (TILE_SIZE*4, ceil(len(files)/4)*TILE_SIZE),
                        'black')
     # image processing with pretty progress bar
     with tqdm(total=len(files),
@@ -116,7 +117,6 @@ def process_dirs(root, text):
     # list subdirectories of root
     tasks = [x for x in root.iterdir() if x.is_dir()]
     for index, task in enumerate(tasks):
-        print(f'{index+1}/{len(tasks)}: {task.name}')
         process_dir(task, text)
     print("Done.")
 
