@@ -75,11 +75,12 @@ def process_images(files, text):
     # image processing with pretty progress bar
     with tqdm(total=len(files),
               bar_format='{percentage:3.0f}%|{bar}|{n_fmt}/{total_fmt}',
-              ascii=' ░█') as pbar:
+              ascii=' #') as pbar:
         for i, f in enumerate(files):
             img = Image.open(f)
             img.thumbnail((TILE_SIZE, TILE_SIZE))
-            img = add_text(add_margins(img), f.stem)
+            if text:
+                img = add_text(add_margins(img), f.stem)
             result.paste(img, get_tile_pos(i))
             pbar.update(1)
     result.save(files[1].parent / ('contactsheet.jpg'), 'jpeg',
@@ -107,7 +108,7 @@ def process_dir(path, text):
         process_images(files, text)
 
 
-def process_dirs(root, text):
+def process_dirs(root, text, recursive):
     '''
     Process all directories in root directory
 
@@ -115,8 +116,13 @@ def process_dirs(root, text):
     :param text: add file name as caption on thumbnails
     '''
     # list subdirectories of root
-    tasks = [x for x in root.iterdir() if x.is_dir()]
+    tasks = [x for x in root.glob('**/*' if recursive else '*') if x.is_dir()]
+    # if recursive:
+    #     tasks = [x for x in root.rglob('*') if x.is_dir()]
+    # else:
+    #     tasks = [x for x in root.iterdir() if x.is_dir()]
     for index, task in enumerate(tasks):
+        print(f'{index+1}/{len(tasks)}: {task.name}')
         process_dir(task, text)
     print("Done.")
 
@@ -125,15 +131,16 @@ def process_dirs(root, text):
 @click.argument('path', type=click.Path(exists=True), required=False)
 @click.option('-f', '--files', 'mode', flag_value='files', default=True)
 @click.option('-d', '--dirs', 'mode', flag_value='dirs')
-@click.option('-t', '--text', is_flag=True, default=False)
-def create_contactsheet(path, mode, text):
+@click.option('-t', '--text', is_flag=True, default=True)
+@click.option('-r', '--recursive', is_flag=True, default=False)
+def create_contactsheet(path, mode, text, recursive):
     if not path:
         path = Path.cwd()
     else:
         path = Path(path)
     if mode == 'dirs':
         print('Processing  dirs...')
-        process_dirs(path, text)
+        process_dirs(path, text, recursive)
     elif mode == 'files':
         print('Processing files in a directory...')
         process_dir(path, text)
